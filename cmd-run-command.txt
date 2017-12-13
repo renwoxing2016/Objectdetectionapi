@@ -1,0 +1,42 @@
+==============================
+先修改：
+1、data下的label map文件
+	pigface_pascal_labelmap.pbtxt 修改成与自己标记的标注一致。
+	如自己标注的pigface
+2、create_pascal_tf_record 代码中修改如下：
+  -------------------------
+	# #指定修改自己数据集的pascal labelmap的输出目录 文件名
+flags.DEFINE_string('label_map_path', 'data/pigface_pascal_labelmap.pbtxt',
+                    'Path to label map proto')
+  -------------------------
+  # #增加了文件名的JPG扩展名
+  img_path = os.path.join(data['folder'], image_subdirectory, data['filename']+'.JPG')
+  -------------------------
+   difficult = bool(int(obj['Difficult'])) # #为配合xml中的变动而修改
+  -------------------------
+   # #自己修改了  删除了aeroplane
+    examples_path = os.path.join(data_dir, year, 'ImageSets', 'Main',
+                                 FLAGS.set + '.txt')
+
+  -------------------------
+
+然后为生成tfrecord文件，再运行如下命令：
+cd 到g:\temp\tf\objectdetection\object_detection目录下。
+python create_pascal_tf_record.py --data_dir=g:\temp\tf\objectdetection\object_detection\pigfaces --year=VOC2007 --set=train --output_path=data\pig_train.record
+
+	注意：--data_dir的是绝对路径名
+		--output_path是相对目录，且要带有文件名 XXXX.record
+
+python create_pascal_tf_record.py --data_dir=g:\temp\tf\objectdetection\object_detection\pigfaces --year=VOC2007 --set=val --output_path=data\pig_val.record
+
+
+之后修改config文件。faster_rcnn_resnet101_voc07
+	主要是各个文件的位置，fine_tune_checkpoint,train_input_reader,eval_input_reader
+	注意window/linux的目录斜杠的区分。
+	
+之后为开始训练，运行如下命令：
+cd 到g:\temp\tf\objectdetection\object_detection目录下。
+python train.py --train_dir=data --pipeline_config_path=models\faster_rcnn_resnet101_voc07.config
+
+
+==========================
